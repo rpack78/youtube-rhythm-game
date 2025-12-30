@@ -21,6 +21,12 @@ class GameEngine {
         this.gameStartTime = 0;
         this.travelTime = 2; // Seconds for note to travel from spawn to hit zone
         
+        // Timing synchronization
+        this.lastYouTubeTime = 0;
+        this.lastYouTubeTimeUpdate = 0;
+        this.interpolatedTime = 0;
+        this.youtubeApiLatency = 0.1; // Estimated YouTube API query latency in seconds
+        
         // Notes and lanes
         this.notes = [];
         this.lanes = [];
@@ -32,7 +38,8 @@ class GameEngine {
         this.noteSpawnOffset = this.travelTime; // Spawn notes this many seconds before hit time
         
         // Calibration offset (for audio/video sync issues)
-        this.calibrationOffset = 0;
+        // Includes compensation for typical audio latency and YouTube API delays
+        this.calibrationOffset = 0.15; // Default 150ms to compensate for system audio latency
         
         // Animation frame ID
         this.animationFrameId = null;
@@ -142,6 +149,11 @@ class GameEngine {
             this.gameStartTime = performance.now();
             this.lastFrameTime = this.gameStartTime;
             
+            // Initialize timing synchronization
+            this.lastYouTubeTime = this.youtubePlayer.getCurrentTime();
+            this.lastYouTubeTimeUpdate = this.gameStartTime;
+            this.interpolatedTime = this.lastYouTubeTime;
+            
             this.animationFrameId = requestAnimationFrame(this.gameLoop);
             
         } catch (error) {
@@ -179,8 +191,8 @@ class GameEngine {
         this.lastFrameTime = currentTime;
         
         if (!this.isPaused) {
-            // Get current playback time
-            const playbackTime = this.youtubePlayer.getCurrentTime() + this.calibrationOffset;
+            // Get current playback time with interpolation
+            const playbackTime = this.getInterpolatedPlaybackTime(currentTime);
             
             // Update game state
             this.update(playbackTime, deltaTime);
@@ -194,6 +206,28 @@ class GameEngine {
         
         // Continue loop
         this.animationFrameId = requestAnimationFrame(this.gameLoop);
+    }
+    
+    /**
+     * Get interpolated playback time to reduce YouTube API latency
+     * YouTube's getCurrentTime() can be 50-250ms behind, so we interpolate between updates
+     */
+    getInterpolatedPlaybackTime(currentTime) {
+        // Query YouTube API every 100ms to stay synchronized
+        const timeSinceLastUpdate = (currentTime - this.lastYouTubeTimeUpdate) / 1000;
+        
+        if (timeSinceLastUpdate > 0.1) {
+            this.lastYouTubeTime = this.youtubePlayer.getCurrentTime();
+            this.lastYouTubeTimeUpdate = currentTime;
+            this.interpolatedTime = this.lastYouTubeTime;
+        } else {
+            // Interpolate time based on frame delta (assume normal playback speed)
+            const deltaTime = (currentTime - this.lastYouTubeTimeUpdate) / 1000;
+            this.interpolatedTime = this.lastYouTubeTime + deltaTime;
+        }
+        
+        // Apply calibration offset
+        return this.interpolatedTime + this.calibrationOffset;
     }
 
     /**
@@ -268,8 +302,8 @@ class GameEngine {
         // Activate lane visual
         this.lanes[lane].press();
         
-        // Get current playback time
-        const currentTime = this.youtubePlayer.getCurrentTime() + this.calibrationOffset;
+        // Get current playback time using interpolation for accuracy
+        const currentTime = this.getInterpolatedPlaybackTime(performance.now());
         
         // Find the closest note in this lane
         let closestNote = null;

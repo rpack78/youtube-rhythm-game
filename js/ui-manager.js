@@ -20,6 +20,8 @@ class UIManager {
             startBtn: document.getElementById('start-btn'),
             difficultyBtns: document.querySelectorAll('.diff-btn'),
             errorMessage: document.getElementById('error-message'),
+            calibrationSlider: document.getElementById('calibration-slider'),
+            calibrationValue: document.getElementById('calibration-value'),
             
             // Loading screen
             progressBar: document.getElementById('progress-bar'),
@@ -55,6 +57,7 @@ class UIManager {
         // Current state
         this.currentScreen = 'start';
         this.selectedDifficulty = 'medium';
+        this.calibrationOffset = 0.15; // Default 150ms in seconds
         
         // Callbacks
         this.onStart = null;
@@ -97,6 +100,15 @@ class UIManager {
                 this.selectDifficulty(btn.dataset.difficulty);
             });
         });
+        
+        // Calibration slider
+        if (this.elements.calibrationSlider) {
+            this.elements.calibrationSlider.addEventListener('input', (e) => {
+                const offsetMs = parseInt(e.target.value);
+                this.calibrationOffset = offsetMs / 1000; // Convert to seconds
+                this.elements.calibrationValue.textContent = `${offsetMs >= 0 ? '+' : ''}${offsetMs}ms`;
+            });
+        }
         
         // Pause screen buttons
         this.elements.resumeBtn.addEventListener('click', () => {
@@ -141,7 +153,7 @@ class UIManager {
         this.clearError();
         
         if (this.onStart) {
-            this.onStart(url, this.selectedDifficulty);
+            this.onStart(url, this.selectedDifficulty, this.calibrationOffset);
         }
     }
 

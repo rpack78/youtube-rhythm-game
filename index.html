@@ -24,6 +24,11 @@
                     <button class="diff-btn" data-difficulty="hard">Hard</button>
                 </div>
             </div>
+            <div class="calibration-setting">
+                <label>Audio Timing Offset: <span id="calibration-value">+150ms</span></label>
+                <input type="range" id="calibration-slider" min="-200" max="500" value="150" step="10">
+                <p class="calibration-hint">Adjust if notes don't line up with the music. Positive = notes appear later</p>
+            </div>
             <div class="controls-info">
                 <h3>Controls</h3>
                 <div class="keys">

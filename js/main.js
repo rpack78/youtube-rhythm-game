@@ -45,10 +45,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Set up UI callbacks
         uiManager.setCallbacks({
-            onStart: async (url, difficulty) => {
+            onStart: async (url, difficulty, calibrationOffset) => {
                 // Add to history when starting
                 await historyManager.addToHistory(url, difficulty);
                 uiManager.renderHistory();
+                // Set calibration offset before starting game
+                game.calibrationOffset = calibrationOffset;
                 await game.startGame(url, difficulty);
             },
             onResume: () => {
