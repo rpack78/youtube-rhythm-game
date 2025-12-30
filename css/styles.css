@@ -482,6 +482,110 @@ body {
     justify-content: center;
 }
 
+/* History Section */
+.history-section {
+    margin-top: 2rem;
+    text-align: left;
+}
+
+.history-section h3 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.history-list {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--dark-surface);
+}
+
+.history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+    background: var(--dark-surface);
+    border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--dark-surface);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.history-item:hover {
+    background: var(--dark-surface-2);
+    border-color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.history-item-thumbnail {
+    width: 60px;
+    height: 34px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: var(--dark-surface-2);
+}
+
+.history-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.history-item-title {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
+}
+
+.history-item-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.history-item-score {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.history-item-difficulty {
+    text-transform: capitalize;
+}
+
+.history-item-difficulty.easy { color: var(--success-color); }
+.history-item-difficulty.medium { color: var(--warning-color); }
+.history-item-difficulty.hard { color: var(--danger-color); }
+
+.history-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    padding: 1rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .title {

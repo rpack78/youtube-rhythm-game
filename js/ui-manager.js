@@ -45,7 +45,11 @@ class UIManager {
             goodCount: document.getElementById('good-count'),
             missCount: document.getElementById('miss-count'),
             playAgainBtn: document.getElementById('play-again-btn'),
-            newSongBtn: document.getElementById('new-song-btn')
+            newSongBtn: document.getElementById('new-song-btn'),
+            
+            // History
+            historySection: document.getElementById('history-section'),
+            historyList: document.getElementById('history-list')
         };
         
         // Current state
@@ -59,6 +63,10 @@ class UIManager {
         this.onQuit = null;
         this.onPlayAgain = null;
         this.onNewSong = null;
+        this.onHistorySelect = null;
+        
+        // History manager reference
+        this.historyManager = null;
         
         // Feedback timeout
         this.feedbackTimeout = null;
@@ -312,6 +320,7 @@ class UIManager {
         if (callbacks.onQuit) this.onQuit = callbacks.onQuit;
         if (callbacks.onPlayAgain) this.onPlayAgain = callbacks.onPlayAgain;
         if (callbacks.onNewSong) this.onNewSong = callbacks.onNewSong;
+        if (callbacks.onHistorySelect) this.onHistorySelect = callbacks.onHistorySelect;
     }
 
     /**
@@ -323,6 +332,107 @@ class UIManager {
         this.updateAccuracy(100);
         this.elements.hitFeedback.classList.remove('show');
         this.elements.countdown.classList.add('hidden');
+    }
+
+    /**
+     * Set history manager reference
+     */
+    setHistoryManager(historyManager) {
+        this.historyManager = historyManager;
+        this.renderHistory();
+    }
+
+    /**
+     * Render history list
+     */
+    renderHistory() {
+        if (!this.historyManager || !this.elements.historyList) return;
+        
+        const history = this.historyManager.getHistory();
+        
+        if (history.length === 0) {
+            this.elements.historySection.style.display = 'none';
+            return;
+        }
+        
+        this.elements.historySection.style.display = 'block';
+        this.elements.historyList.innerHTML = '';
+        
+        for (const item of history) {
+            const historyItem = this.createHistoryItem(item);
+            this.elements.historyList.appendChild(historyItem);
+        }
+    }
+
+    /**
+     * Create a history item element
+     */
+    createHistoryItem(item) {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.dataset.url = item.url;
+        div.dataset.difficulty = item.difficulty;
+        
+        // Thumbnail
+        const thumbnail = document.createElement('img');
+        thumbnail.className = 'history-item-thumbnail';
+        thumbnail.src = `https://img.youtube.com/vi/${item.videoId}/default.jpg`;
+        thumbnail.alt = item.title;
+        thumbnail.onerror = () => {
+            thumbnail.style.display = 'none';
+        };
+        
+        // Info container
+        const info = document.createElement('div');
+        info.className = 'history-item-info';
+        
+        // Title
+        const title = document.createElement('div');
+        title.className = 'history-item-title';
+        title.textContent = item.title;
+        title.title = item.title; // Tooltip for full title
+        
+        // Meta info
+        const meta = document.createElement('div');
+        meta.className = 'history-item-meta';
+        
+        // Difficulty badge
+        const difficulty = document.createElement('span');
+        difficulty.className = `history-item-difficulty ${item.difficulty}`;
+        difficulty.textContent = item.difficulty;
+        
+        // High score
+        if (item.highScore !== undefined && item.highScore !== null) {
+            const score = document.createElement('span');
+            score.className = 'history-item-score';
+            score.textContent = `${item.highScore.toLocaleString()} pts`;
+            meta.appendChild(score);
+        }
+        
+        meta.appendChild(difficulty);
+        
+        // Time ago
+        const timeAgo = document.createElement('span');
+        timeAgo.textContent = this.historyManager.formatRelativeTime(item.lastPlayed);
+        meta.appendChild(timeAgo);
+        
+        info.appendChild(title);
+        info.appendChild(meta);
+        
+        div.appendChild(thumbnail);
+        div.appendChild(info);
+        
+        // Click handler
+        div.addEventListener('click', () => {
+            this.elements.urlInput.value = item.url;
+            this.selectDifficulty(item.difficulty);
+            
+            if (this.onHistorySelect) {
+                this.onHistorySelect(item.url, item.difficulty);
+            }
+        });
+        
+        return div;
     }
 
     /**

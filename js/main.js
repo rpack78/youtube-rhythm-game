@@ -5,6 +5,7 @@
 
 // Global game instance
 let game = null;
+let historyManager = null;
 
 /**
  * Initialize the game when DOM is ready
@@ -22,6 +23,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const scoringSystem = new ScoringSystem();
         const uiManager = new UIManager();
         
+        // Create history manager
+        historyManager = new HistoryManager();
+        uiManager.setHistoryManager(historyManager);
+        
         // Create game engine
         game = new GameEngine(
             renderer,
@@ -32,12 +37,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             uiManager
         );
         
+        // Store history manager reference in game
+        game.historyManager = historyManager;
+        
         // Initialize game engine
         await game.init();
         
         // Set up UI callbacks
         uiManager.setCallbacks({
             onStart: async (url, difficulty) => {
+                // Add to history when starting
+                await historyManager.addToHistory(url, difficulty);
+                uiManager.renderHistory();
                 await game.startGame(url, difficulty);
             },
             onResume: () => {
@@ -48,12 +59,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             onQuit: () => {
                 game.quit();
+                uiManager.renderHistory();
             },
             onPlayAgain: async () => {
                 await game.restart();
             },
             onNewSong: () => {
                 game.quit();
+                uiManager.renderHistory();
+            },
+            onHistorySelect: (url, difficulty) => {
+                // Just populate the form, user still needs to click Play
+                console.log(`Selected from history: ${url}`);
             }
         });
         

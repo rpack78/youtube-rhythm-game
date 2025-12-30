@@ -394,8 +394,16 @@ class GameEngine {
             this.endTimeout = null;
         }
         
-        // Show results
+        // Get stats and update history with score
         const stats = this.scoringSystem.getStats();
+        
+        // Update history with final score
+        if (this.historyManager) {
+            const url = this.uiManager.getUrl();
+            this.historyManager.updateScore(url, stats.score);
+        }
+        
+        // Show results
         this.uiManager.showResults(stats);
     }
 
